@@ -43,6 +43,8 @@ class Mobile_Detect {
     protected $userAgent = null;
     protected $httpHeaders = array();
 
+    protected $userAgentHasChanged = false;
+
     // ==================================================================
     //
     // Constructor

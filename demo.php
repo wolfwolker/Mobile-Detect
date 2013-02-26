@@ -27,7 +27,7 @@
  * @license     MIT License https://github.com/serbanghita/Mobile-Detect/blob/master/LICENSE.txt
  *
  */
-
+error_reporting(E_ALL && ~E_NOTICE);
 require_once 'Mobile_Detect.php';
 $detect = new Mobile_Detect;
 //$deviceType = ($detect->isMobile() ? ($detect->isTablet() ? 'tablet' : 'phone') : 'computer');

@@ -18,10 +18,14 @@ $html .= '<table id="results" class="tablesorter" cellspacing="0" cellpadding="0
     $html .= '
 <thead>
     <tr>
-        <th width="70%">User-Agent</th>
-        <th></th>
-        <th></th>
-        <th></th>
+        <th width="50%">User-Agent</th>
+        <th>deviceType</th>
+        <th>deviceVendor</th>
+        <th>deviceModel</th>
+        <th>os</th>
+        <th>osVer</th>
+        <th>browser</th>
+        <th>browserVer</th>
     </tr>
 </thead>
 <tbody>';
@@ -39,9 +43,15 @@ foreach($mobilePerVendor_userAgents as $brand => $deviceArr){
 
         $html .= '<tr>';
             $html .= '<td>'.$userAgentString.'</td>';
+
+            $html .= '<td>'.$what['deviceType'].'</td>';
             $html .= '<td>'.$what['deviceVendor'].'</td>';
             $html .= '<td>'.$what['deviceModel'].'</td>';
-            $html .= '<td></td>';
+            $html .= '<td>'.$what['os'].'</td>';
+            $html .= '<td>'.$what['osVer'].'</td>';
+            $html .= '<td>'.$what['browser'].'</td>';
+            $html .= '<td>'.$what['browserVer'].'</td>';
+
         $html .= '</tr>';
 
     }

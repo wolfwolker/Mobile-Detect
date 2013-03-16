@@ -274,7 +274,6 @@ class Mobile_Detect {
                                     'label'     => 'Safari',
                                     'match'     => 'Version.*Mobile.*Safari|Safari.*Mobile',
                                     'ver'       => 'Version/[VER]',
-                                    'buildVer'  => 'Safari/[VER]'
                 ),
 
             )
@@ -511,7 +510,6 @@ class Mobile_Detect {
 
                             $this->what['browser'] = $itemArr['label'];
                             $this->what['browserVer'] = $this->getVersionFromPattern($itemArr['ver']);
-                            $this->what['browserBuildVer'] = $this->getVersionFromPattern($itemArr['buildVer']);
 
                         break;
 

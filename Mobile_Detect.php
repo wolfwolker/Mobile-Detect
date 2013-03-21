@@ -27,8 +27,10 @@
  *              Victor Stanciu <vic.stanciu@gmail.com> (until v.1.0)
  * @license     MIT License https://github.com/serbanghita/Mobile-Detect/blob/master/LICENSE.txt
  * @link        Official page: http://mobiledetect.net
- *              GitHub Repository: https://github.com/serbanghita/Mobile-Detect
- *              Google Code Old Page: http://code.google.com/p/php-mobile-detect/
+ *              GitHub: https://github.com/serbanghita/Mobile-Detect
+ *              Google Code: http://code.google.com/p/php-mobile-detect/ (old page)
+ *
+ * @version     3.0 (Community Donation Release)
  */
 
 class Mobile_Detect {
@@ -453,7 +455,7 @@ class Mobile_Detect {
             // Identify and extract the version.
             preg_match('/'.$regex.'/is', $this->userAgent, $match);
 
-            if($match[1]){
+            if((int)count($match)>0 && $match[1]){
                 $version = $this->prepareVersionNo($match[1]);
                 return $version;
             }

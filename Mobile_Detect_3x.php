@@ -421,46 +421,85 @@ class Mobile_Detect {
     //
     // ------------------------------------------------------------------
 
+    /**
+     * Get the properties array.
+     * @return array
+     */
+    function getProperties(){
+
+        return $this->properties;
+
+    }
 
     /**
-     * Prepare the version number.
+     * Transform the version to float.
      *
      * @param $ver
-     * @return int
+     * @return float
      */
-    function prepareVersionNo($ver){
-
-        return $ver;
+    function versionToFloat( $ver ){
 
         $ver = str_replace(array('_', ' ', '/'), array('.', '.', '.'), $ver);
         $arrVer = explode('.', $ver, 2);
-        $arrVer[1] = @str_replace('.', '', $arrVer[1]); // @todo: treat strings versions.
+
+        if( isset($arrVer[1]) ){
+            $arrVer[1] = @str_replace('.', '', $arrVer[1]);
+        }
         $ver = (float)implode('.', $arrVer);
 
         return $ver;
 
     }
 
-    public function getVersionFromPattern($patterns){
+    function _version( $patterns, $type = 'text' ){
 
-        if($patterns){ $patterns = (array)$patterns; }
+        // Prepare the pattern to be matched.
+        // Make sure we always deal with an array (string is converted).
+        $patterns = (array)$patterns;
 
-        foreach($patterns as $regex){
+        foreach($patterns as $propertyMatchString){
 
-            $regex = str_replace(array('[VER]', '[MODEL]'), array(self::VER, self::MODEL), $regex);
+            $propertyPattern = str_replace('[VER]', self::VER, $propertyMatchString);
 
             // Escape the special character which is the delimiter.
-            $regex = str_replace('/', '\/', $regex);
+            $propertyPattern = str_replace('/', '\/', $propertyPattern);
 
             // Identify and extract the version.
-            preg_match('/'.$regex.'/is', $this->userAgent, $match);
+            preg_match('/'.$propertyPattern.'/is', $this->userAgent, $match);
 
-            if((int)count($match)>0 && $match[1]){
-                $version = $this->prepareVersionNo($match[1]);
+            if( !empty($match[1]) ){
+                $version = ( $type == 'float' ? $this->versionToFloat($match[1]) : $match[1] );
                 return $version;
             }
 
         }
+
+        return false;
+
+    }
+
+    /**
+     * Check the version of the given property in the User-Agent.
+     * Will return a float number. (eg. 2_0 will return 2.0, 4.3.1 will return 4.31)
+     *
+     * @param string $propertyName
+     * @return mixed $version
+     */
+    function version( $propertyName, $type = 'text' ){
+
+        if(empty($propertyName)){ return false; }
+        if( !in_array($type, array('text', 'float')) ){ $type = 'text'; }
+
+        $properties = $this->getProperties();
+
+        // Check if the property exists in the properties array.
+        if( array_key_exists($propertyName, $properties) ){
+
+            return $this->_version($properties[$propertyName], $type);
+
+        }
+
+        return false;
 
     }
 
@@ -474,7 +513,8 @@ class Mobile_Detect {
     }
 
     /**
-     * [what description]
+     * Iterate through all items and extract info if there is a match.
+     *
      * $detect->what()
      *
      * @param  string $prop [description]
@@ -497,21 +537,21 @@ class Mobile_Detect {
 
                             $this->what['deviceType'] = $itemType;
                             $this->what['deviceVendor'] = $itemArr['vendor'];
-                            $this->what['deviceModel'] = $this->getVersionFromPattern($itemArr['model']);
+                            $this->what['deviceModel'] = $this->_version($itemArr['model']);
 
                         break;
 
                         case 'os':
 
                             $this->what['os'] = $itemArr['label'];
-                            $this->what['osVer'] = $this->getVersionFromPattern($itemArr['ver']);
+                            $this->what['osVer'] = $this->_version($itemArr['ver']);
 
                         break;
 
                         case 'browser':
 
                             $this->what['browser'] = $itemArr['label'];
-                            $this->what['browserVer'] = $this->getVersionFromPattern($itemArr['ver']);
+                            $this->what['browserVer'] = $this->_version($itemArr['ver']);
 
                         break;
 

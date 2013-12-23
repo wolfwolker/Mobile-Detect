@@ -2,6 +2,9 @@
 
 class MobileDetect
 {
+    const MATCH_TYPE_REGEX          = 'regex';
+    const MATCH_TYPE_STRIPOS        = 'stripos';
+
     //MARKER_START
     protected static $items = array(
         'phoneDevices'      => array(
@@ -553,7 +556,8 @@ class MobileDetect
             $headerName = implode('-', $headerBits);
         }
 
-        if (!in_array($headerName, static::$requestHeaders)) {
+        //check for non-extension headers that are not standard
+        if ($headerName[0] != 'X' && !in_array($headerName, static::$requestHeaders)) {
             throw new InvalidArgumentException("The request header $headerName isn't a recognized HTTP header name");
         }
 
@@ -589,32 +593,40 @@ class MobileDetect
         return preg_match("/$partialRegex/$modifiers", $value) === 1;
     }
 
-    protected function detectDeviceType(Device $device = null)
+    protected function getDeviceTypeKey(Device $device = null, array $search)
     {
-        if ($device === null) {
-            $device = new Device();
-        }
+        foreach ($search as $deviceName => $deviceTest) {
+            //at least 'regex' and 'matchType' should be present
+            if (!isset($deviceTest['matchType'])) {
+                throw new LogicException("Invalid array passed for $deviceName: " . print_r($deviceTest, true));
+            }
 
-        //need a user agent for this detection type
-        $ua = $this->getUserAgent();
-        if (!$ua) {
-            return false;
-        }
-
-        $phones = static::getPhoneDevices();
-
-        foreach ($phones as $model => $props) {
-            //validate the array
-            if (isset($props['matchType'])
-                && $props['matchType'] == 'regex'
-                && isset($props['regex'])) {
-                if ($this->matches($ua, $props['regex'])) {
-                    $device->setModel($model)
-                        ->setType(Device::TYPE_MOBILE);
+            if ($deviceTest['matchType'] == static::MATCH_TYPE_REGEX) {
+                //sanity check
+                if (!isset($deviceTest[static::MATCH_TYPE_REGEX])) {
+                    throw new LogicException("The match type is 'regex', but there's no regular expression: "
+                        . print_r($deviceTest, true));
                 }
-            } else {
-                throw new RuntimeException("Invalid model array found in phone strategy with $model: "
-                    . print_r($props, true));
+
+                if ($this->matches($device->getUserAgent(), $deviceTest['regex']))
+                {
+                    //found it!
+                    return $deviceName;
+                }
+            }
+
+            if ($deviceTest['matchType'] == static::MATCH_TYPE_STRIPOS) {
+                //sanity check
+                if (!isset($deviceTest[static::MATCH_TYPE_STRIPOS])) {
+                    throw new LogicException("The match type is 'stripos', but there's no string to match against: "
+                        . print_r($deviceTest, true));
+                }
+
+                if (false !== stripos($device->getUserAgent(), $deviceTest[static::MATCH_TYPE_STRIPOS]))
+                {
+                    //found it!
+                    return $deviceName;
+                }
             }
         }
     }
@@ -636,9 +648,31 @@ class MobileDetect
             throw new InvalidArgumentException("$device is not a real class or isn't a child class of Device.");
         }
 
+        //try a phone detection
+        if ($this->getDeviceTypeKey($device, static::getPhoneDevices())) {
+            //@todo fill device with phone-ish stuff
+            $device->setType(Device::TYPE_MOBILE);
+            $this->detectOs($device);
+            $this->detectBrowser($device);
+        } elseif ($this->getDeviceTypeKey($device, static::getTabletDevices())) {
+            //@todo fill device with tablet-ish stuff
+            $device->setType(Device::TYPE_TABLET);
+            $this->detectOs($device);
+            $this->detectBrowser($device);
+        } elseif ($this->getDeviceTypeKey($device, static::getUtilities())) {
+            //@todo fill device with utility-ish stuff
+            $device->setType(Device::TYPE_BOT);
+        } else {
+            $device->setType(Device::TYPE_DESKTOP);
+            $this->detectOs($device);
+            $this->detectBrowser($device);
+        }
+
         //0. start simple detection to help us later
         //1. we need to detect device type
         //2. we need to detect OS
         //3. we need to detect browser
+
+        return $device;
     }
 }

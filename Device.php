@@ -10,6 +10,7 @@ class Device
     const TYPE_MOBILE           = 0;
     const TYPE_DESKTOP          = 1;
     const TYPE_TABLET           = 2;
+    const TYPE_BOT              = 3;
 
     protected static $itemsProperties = array(
         // Build specific version.
@@ -47,7 +48,11 @@ class Device
 
     public function setType($type)
     {
-        if ($type != static::TYPE_DESKTOP && $type != static::TYPE_MOBILE && $type != static::TYPE_TABLET) {
+        if ($type != static::TYPE_DESKTOP
+            && $type != static::TYPE_MOBILE
+            && $type != static::TYPE_TABLET
+            && $type != static::TYPE_BOT
+        ) {
             throw new InvalidArgumentException("Unrecognized type: '$type'");
         }
 
@@ -119,6 +124,11 @@ class Device
     {
         $this->browserVersion = $version;
         return $this;
+    }
+
+    public function getUserAgent()
+    {
+        return $this->userAgent;
     }
 
     public function isMobile()
